@@ -39,7 +39,7 @@ let calculate expression =
               stack := Stack.push ((int_of_char token - int_of_char '0') + number * 10) stack'
         | _  -> failwith "test")
     | ' ' -> operation_mode := 0
-    | _ -> failwith "unsuported"
+    | _ -> failwith "unsupported"
       
   in
 
