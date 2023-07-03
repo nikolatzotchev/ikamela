@@ -4,7 +4,8 @@ lets try [Ocaml](https://ocaml.org/)
 # running
 after [installing](https://ocaml.org/install)
 ```
-dune exec ikamela
+dune build
+dune exec calc
 ```
 # formating with OCamlFormat (after writing some code)
 ```
