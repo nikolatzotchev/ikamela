@@ -26,11 +26,9 @@ end
 
 let char_to_int char = Integer { value = int_of_char char - int_of_char '0' }
 
-(* Calculator function *)
-(* right now only basic operation on integers are supported*)
-(* and we do not look at the operation mode*)
-let calculate expression =
-  let stack = ref Stack.empty in
+let rec evaluate_one_step mode expression_list stack_ =
+  let stack = ref stack_ in
+  let tokens = expression_list in
 
   let apply_operator operator =
     let operand2, stack' = Stack.pop !stack in
@@ -71,34 +69,46 @@ let calculate expression =
     | _ -> failwith "Invalid operator"
   in
 
-  let rec process_token operation_mode token =
+  let rec process_token operation_mode token rest =
     match operation_mode with
     | 0 -> (
         match token with
         | '+' | '-' | '*' | '/' ->
             apply_operator token;
-            0
+            (0, rest)
         | '0' .. '9' ->
             stack := Stack.push (char_to_int token) !stack;
-            -1
-        | ' ' -> 0
+            (-1, rest)
+        | ' ' -> (0, rest)
         | '(' ->
             stack := Stack.push (String { value = "(" }) !stack;
-            1
-        (*This is the apply immediately which should take the string on the stakand evaluate it, if the top element is not a string do nothing*)
+            (1, rest)
+        (*This is the apply immediately which should take the string on the stack and evaluate it, if the top element is not a string do nothing*)
         | '@' -> (
             let stack_entry, stack' = Stack.pop !stack in
             match stack_entry with
             (* if string pop and apply *)
             | String str ->
                 let len = String.length str.value in
-                if len <= 2 then 0
+                if len <= 2 then (0, rest)
                 else
                   let new_str = String.sub str.value 1 (len - 2) in
                   stack := stack';
-                  String.fold_left process_token operation_mode new_str
+                  (0, List.of_seq (String.to_seq new_str) @ rest)
+            (* String.fold_left process_token operation_mode new_str *)
             (* else do nothing *)
-            | _ -> 0)
+            | _ -> (0, rest))
+        (* pop string -> put at the end with @*)
+        | '\\' -> (
+            let stack_entry, stack' = Stack.pop !stack in
+            match stack_entry with
+            (* if string pop and apply *)
+            | String str ->
+                stack := stack';
+                (*just put at end of command stream*)
+                (0, rest @ List.of_seq (String.to_seq str.value) @ [ '@' ])
+            (* else do nothing *)
+            | _ -> (0, rest))
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
     (* what is left to be done is switching ot float create mode*)
@@ -117,11 +127,11 @@ let calculate expression =
                            + (number.value * 10);
                        })
                     stack';
-                -1
+                (-1, rest)
             | Float _ -> failwith "not implemented -1 mode"
             | String _ -> failwith "not implemented -1 mode")
-        | ' ' -> 0
-        | _ -> process_token 0 token)
+        | ' ' -> (0, rest)
+        | _ -> process_token 0 token rest)
     (* string creation mode*)
     | _ when operation_mode > 0 -> (
         let stackentry, stack' = Stack.pop !stack in
@@ -130,21 +140,28 @@ let calculate expression =
             match token with
             | '(' ->
                 stack := Stack.push (String { value = s.value ^ "(" }) stack';
-                operation_mode + 1
+                (operation_mode + 1, rest)
             | ')' ->
                 stack := Stack.push (String { value = s.value ^ ")" }) stack';
-                operation_mode - 1
+                (operation_mode - 1, rest)
             | c ->
                 stack :=
                   Stack.push
                     (String { value = s.value ^ String.make 1 c })
                     stack';
-                operation_mode)
+                (operation_mode, rest))
         | _ -> failwith "not supported")
     | _ -> failwith "unsoported"
   in
 
-  let tokens = List.of_seq (String.to_seq expression) in
-  let _ = List.fold_left process_token 0 tokens in
+  match tokens with
+  | [] -> !stack
+  | x :: xp ->
+      let new_mode, new_xp = process_token mode x xp in
+      evaluate_one_step new_mode new_xp !stack
 
-  !stack
+(* Calculator function *)
+(* right now only basic operation on integers are supported*)
+(* and we do not look at the operation mode*)
+let calculate expression =
+  evaluate_one_step 0 (List.of_seq (String.to_seq expression)) Stack.empty
