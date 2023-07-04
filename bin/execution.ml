@@ -7,7 +7,6 @@ let print_stack_element = function
   | Integer p -> print_int p.value
   | String s -> print_string s.value
   | Float f -> print_float f.value
-(* test#derived1_method "daf" "dafkj" *)
 
 (* Stack module, we need a custom one in order to implement also the other operations*)
 (* we do not have only pop and push*)
@@ -66,6 +65,7 @@ let rec evaluate_one_step mode expression_list stack_ =
             stack := Stack.push i stack''
         (*do the rest*)
         | _, _ -> failwith "not implemented")
+    (*do the rest % (modulo) *)
     | _ -> failwith "Invalid operator"
   in
 
@@ -76,10 +76,13 @@ let rec evaluate_one_step mode expression_list stack_ =
         | '+' | '-' | '*' | '/' ->
             apply_operator token;
             (0, rest)
+        (*start integer creation*)
         | '0' .. '9' ->
             stack := Stack.push (char_to_int token) !stack;
             (-1, rest)
+        (*go to next number*)
         | ' ' -> (0, rest)
+        (*start string creation*)
         | '(' ->
             stack := Stack.push (String { value = "(" }) !stack;
             (1, rest)
@@ -95,7 +98,6 @@ let rec evaluate_one_step mode expression_list stack_ =
                   let new_str = String.sub str.value 1 (len - 2) in
                   stack := stack';
                   (0, List.of_seq (String.to_seq new_str) @ rest)
-            (* String.fold_left process_token operation_mode new_str *)
             (* else do nothing *)
             | _ -> (0, rest))
         (* pop string -> put at the end with @*)
@@ -133,6 +135,7 @@ let rec evaluate_one_step mode expression_list stack_ =
         | ' ' -> (0, rest)
         | _ -> process_token 0 token rest)
     (* string creation mode*)
+    (* this should be ready*)
     | _ when operation_mode > 0 -> (
         let stackentry, stack' = Stack.pop !stack in
         match stackentry with
@@ -151,17 +154,21 @@ let rec evaluate_one_step mode expression_list stack_ =
                     stack';
                 (operation_mode, rest))
         | _ -> failwith "not supported")
-    | _ -> failwith "unsoported"
+    | _ -> failwith "not supported"
   in
 
   match tokens with
   | [] -> !stack
   | x :: xp ->
+      (*
+        we need this becouse of the string application modes
+        @ will return in new_xp the popped string + xp and it will be just executed   
+        / will put the popped string on the end of xp and will be executed later
+         *)
       let new_mode, new_xp = process_token mode x xp in
       evaluate_one_step new_mode new_xp !stack
 
-(* Calculator function *)
+(* Calculator function*)
 (* right now only basic operation on integers are supported*)
-(* and we do not look at the operation mode*)
 let calculate expression =
   evaluate_one_step 0 (List.of_seq (String.to_seq expression)) Stack.empty
