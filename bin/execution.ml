@@ -25,6 +25,23 @@ end
 
 let char_to_int char = Integer { value = int_of_char char - int_of_char '0' }
 
+let epsilon = 0.001
+
+let compare_float x y =
+  if abs_float (x -. y) <= epsilon *. max (abs_float x) (abs_float y) then 0
+  else if x < y then -1
+  else 1
+
+let compare_values operand1 operand2 =
+  match (operand1, operand2) with
+  | Integer v1, Integer v2 -> compare v1.value v2.value
+  | Float v1, Float v2 -> compare_float v1.value v2.value
+  | Float v1, Integer v2 -> compare_float v1.value (float_of_int v2.value)
+  | Integer v1, Float v2 -> compare_float (float_of_int v1.value) v2.value
+  | String v1, String v2 -> compare v1.value v2.value
+  | String _, _ -> -1
+  | _, String _ -> 1
+
 let rec evaluate_one_step mode expression_list stack_ =
   let stack = ref stack_ in
   let tokens = expression_list in
@@ -83,6 +100,22 @@ let rec evaluate_one_step mode expression_list stack_ =
         (*do the rest*)
         | _, _ -> stack := Stack.push (String { value = "()" }) stack'')
     (*do the rest % (modulo) *)
+    | '%' -> failwith "Modulo not implemented"
+    | '=' ->
+      let comparison = compare_values operand1 operand2 in
+      let result = if comparison = 0 then 1 else 0 in
+      let i = Integer { value = result } in
+      stack := Stack.push i stack''
+    | '<' ->
+      let comparison = compare_values operand1 operand2 in
+      let result = if comparison < 0 then 1 else 0 in
+      let i = Integer { value = result } in
+      stack := Stack.push i stack''
+    | '>' ->
+      let comparison = compare_values operand1 operand2 in
+      let result = if comparison > 0 then 1 else 0 in
+      let i = Integer { value = result } in
+      stack := Stack.push i stack''
     | _ -> failwith "Invalid operator"
   in
 
@@ -90,7 +123,7 @@ let rec evaluate_one_step mode expression_list stack_ =
     match operation_mode with
     | 0 -> (
         match token with
-        | '+' | '-' | '*' | '/' | '&' | '|' ->
+        | '+' | '-' | '*' | '/' | '&' | '|' | '=' | '<' | '>' ->
             apply_operator token;
             (0, rest)
         (*start integer creation*)
