@@ -65,6 +65,23 @@ let rec evaluate_one_step mode expression_list stack_ =
             stack := Stack.push i stack''
         (*do the rest*)
         | _, _ -> failwith "not implemented")
+    | '&' -> (
+        match (operand1, operand2) with
+        | Integer v, Integer u -> (
+            match (v.value, u.value) with
+            | 0, _ -> stack := Stack.push (Integer { value = 0 }) stack''
+            | _, 0 -> stack := Stack.push (Integer { value = 0 }) stack''
+            | _, _ -> stack := Stack.push (Integer { value = 1 }) stack'')
+        (*do the rest*)
+        | _, _ -> stack := Stack.push (String { value = "()" }) stack'')
+    | '|' -> (
+        match (operand1, operand2) with
+        | Integer v, Integer u -> (
+            match (v.value, u.value) with
+            | 0, 0 -> stack := Stack.push (Integer { value = 0 }) stack''
+            | _, _ -> stack := Stack.push (Integer { value = 1 }) stack'')
+        (*do the rest*)
+        | _, _ -> stack := Stack.push (String { value = "()" }) stack'')
     (*do the rest % (modulo) *)
     | _ -> failwith "Invalid operator"
   in
@@ -73,7 +90,7 @@ let rec evaluate_one_step mode expression_list stack_ =
     match operation_mode with
     | 0 -> (
         match token with
-        | '+' | '-' | '*' | '/' ->
+        | '+' | '-' | '*' | '/' | '&' | '|' ->
             apply_operator token;
             (0, rest)
         (*start integer creation*)
