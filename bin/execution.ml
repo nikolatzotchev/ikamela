@@ -41,8 +41,8 @@ let rec evaluate_one_step mode expression_list stack_ =
             let sum = v.value + u.value in
             let i = Integer { value = sum } in
             stack := Stack.push i stack''
-        | Float v1, Float v2 ->
-            let sum = v1.value +. v2.value in
+        | Float v, Float u ->
+            let sum = v.value +. u.value in
             let result = Float { value = sum } in
             stack := Stack.push result stack''
         | Integer v, Float u | Float u, Integer v ->
@@ -57,8 +57,8 @@ let rec evaluate_one_step mode expression_list stack_ =
             let sum = v.value - u.value in
             let i = Integer { value = sum } in
             stack := Stack.push i stack''
-        | Float v1, Float v2 ->
-            let sum = v1.value -. v2.value in
+        | Float v, Float u ->
+            let sum = v.value -. u.value in
             let result = Float { value = sum } in
             stack := Stack.push result stack''
         | Integer v, Float u | Float u, Integer v ->
@@ -73,8 +73,8 @@ let rec evaluate_one_step mode expression_list stack_ =
             let mul = v.value * u.value in
             let i = Integer { value = mul } in
             stack := Stack.push i stack''
-        | Float v1, Float v2 ->
-            let sum = v1.value *. v2.value in
+        | Float v, Float u ->
+            let sum = v.value *. u.value in
             let result = Float { value = sum } in
             stack := Stack.push result stack''
         | Integer v, Float u | Float u, Integer v ->
@@ -89,8 +89,8 @@ let rec evaluate_one_step mode expression_list stack_ =
             let sum = v.value / u.value in
             let i = Integer { value = sum } in
             stack := Stack.push i stack''
-        | Float v1, Float v2 ->
-            let sum = v1.value /. v2.value in
+        | Float v, Float u ->
+            let sum = v.value /. u.value in
             let result = Float { value = sum } in
             stack := Stack.push result stack''
         | Integer v, Float u ->
@@ -109,8 +109,8 @@ let rec evaluate_one_step mode expression_list stack_ =
             let sum = v.value mod u.value in
             let i = Integer { value = sum } in
             stack := Stack.push i stack''
-        | Float v1, Float v2 ->
-            let sum = mod_float v1.value v2.value in
+        | Float v, Float u ->
+            let sum = mod_float v.value u.value in
             let result = Float { value = sum } in
             stack := Stack.push result stack''
         | Integer v, Float u ->
