@@ -23,7 +23,9 @@ module Stack = struct
   let print_stack stack = List.iter print_stack_element stack
 end
 
-let char_to_int char = Integer { value = int_of_char char - int_of_char '0' }
+let char_to_stack_int char = Integer { value = int_of_char char - int_of_char '0' }
+
+let char_to_int char = int_of_char char - int_of_char '0'
 
 let rec evaluate_one_step mode expression_list stack_ =
   let stack = ref stack_ in
@@ -146,7 +148,7 @@ let rec evaluate_one_step mode expression_list stack_ =
     | Float f ->
         let new_value =
           f.value
-          +. float_of_int (int_of_char token - int_of_char '0')
+          +. float_of_int (char_to_int token)
              /. (10.0 ** float_of_int (-mode - 1))
         in
         let new_float = Float { value = new_value } in
@@ -163,7 +165,7 @@ let rec evaluate_one_step mode expression_list stack_ =
             (0, rest)
         (*start integer creation*)
         | '0' .. '9' ->
-            stack := Stack.push (char_to_int token) !stack;
+            stack := Stack.push (char_to_stack_int token) !stack;
             (-1, rest)
         (*go to next number*)
         | ' ' -> (0, rest)
@@ -207,12 +209,7 @@ let rec evaluate_one_step mode expression_list stack_ =
             | Integer number ->
                 stack :=
                   Stack.push
-                    (Integer
-                       {
-                         value =
-                           int_of_char token - int_of_char '0'
-                           + (number.value * 10);
-                       })
+                    (Integer { value = char_to_int token + (number.value * 10) })
                     stack';
                 (-1, rest)
             | Float _ -> failwith "not implemented -1 mode"
