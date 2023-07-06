@@ -23,8 +23,11 @@ module Stack = struct
   let print_stack stack = List.iter print_stack_element stack
 end
 
-let char_to_stack_int char = Integer { value = int_of_char char - int_of_char '0' }
+(* Converts a char to a stack element with an integer value*)
+let char_to_stack_int char =
+  Integer { value = int_of_char char - int_of_char '0' }
 
+(* Converts a char into an integer*)
 let char_to_int char = int_of_char char - int_of_char '0'
 
 let rec evaluate_one_step mode expression_list stack_ =
@@ -140,8 +143,9 @@ let rec evaluate_one_step mode expression_list stack_ =
             | _, _ -> stack := Stack.push (Integer { value = 1 }) stack'')
         (*do the rest*)
         | _, _ -> stack := Stack.push (String { value = "()" }) stack'')
-    (*do the rest % (modulo) *)
+    (*do the rest*)
     | _ -> failwith "Invalid operator"
+  (* Constructs one float digit when the operation_mode is less then -1 *)
   and construct_float_number mode token =
     let operand, stack' = Stack.pop !stack in
     match operand with
@@ -200,7 +204,6 @@ let rec evaluate_one_step mode expression_list stack_ =
             | _ -> (0, rest))
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
-    (* what is left to be done is switching ot float create mode*)
     | _ when operation_mode = -1 -> (
         match token with
         | '0' .. '9' -> (
@@ -214,6 +217,7 @@ let rec evaluate_one_step mode expression_list stack_ =
                 (-1, rest)
             | Float _ -> failwith "not implemented -1 mode"
             | String _ -> failwith "not implemented -1 mode")
+        (* Convert the current stack entry to a float and push it back then switch to float construction mode *)
         | '.' -> (
             let stack_entry, stack' = Stack.pop !stack in
             match stack_entry with
@@ -224,6 +228,7 @@ let rec evaluate_one_step mode expression_list stack_ =
             | _ -> failwith "Invalid token after dot")
         | ' ' -> (0, rest)
         | _ -> process_token 0 token rest)
+    (* Float construction mode *)
     | _ when operation_mode < -1 -> (
         match token with
         | '0' .. '9' ->
