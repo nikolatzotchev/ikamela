@@ -177,6 +177,12 @@ let rec evaluate_one_step mode expression_list stack_ =
         | '(' ->
             stack := Stack.push (String { value = "(" }) !stack;
             (1, rest)
+        | '?' -> (
+            let stack_entry, stack' = Stack.pop !stack in
+            match stack_entry with
+            | Float v -> stack := Stack.push (Integer { value = int_of_float v.value }) stack'; (0, rest)
+            | String _ -> stack := Stack.push (String { value = "()" }) stack'; (0, rest)
+            | Integer _ -> stack := Stack.push (String { value = "()" }) stack'; (0, rest))
         (*This is the apply immediately which should take the string on the stack and evaluate it, if the top element is not a string do nothing*)
         | '@' -> (
             let stack_entry, stack' = Stack.pop !stack in
