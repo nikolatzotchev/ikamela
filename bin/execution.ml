@@ -26,14 +26,17 @@ end
 (* Converts a char to a stack element with an integer value*)
 let char_to_stack_int char =
   Integer { value = int_of_char char - int_of_char '0' }
+
 (* Converts a char into an integer*)
 let char_to_int char = int_of_char char - int_of_char '0'
 
-let epsilon = 0.001
 
-let compare_float x y =
-  if abs_float (x -. y) <= epsilon *. max (abs_float x) (abs_float y) then 0
-  else if x < y then -1
+let epsilon = 0.0001
+let compare_float v u =
+  let diff = abs_float (v -. u) in
+  if abs_float v > 1.0 || abs_float u > 1.0 then
+    if diff <= epsilon *. max (abs_float v) (abs_float u) then 0 else 1
+  else if diff <= epsilon then 0
   else 1
 
 let compare_values operand1 operand2 =
@@ -160,20 +163,20 @@ let rec evaluate_one_step mode expression_list stack_ =
         (*do the rest*)
         | _, _ -> stack := Stack.push (String { value = "()" }) stack'')
     | '=' ->
-      let comparison = compare_values operand1 operand2 in
-      let result = if comparison = 0 then 1 else 0 in
-      let i = Integer { value = result } in
-      stack := Stack.push i stack''
+        let comparison = compare_values operand1 operand2 in
+        let result = if comparison = 0 then 1 else 0 in
+        let i = Integer { value = result } in
+        stack := Stack.push i stack''
     | '<' ->
-      let comparison = compare_values operand1 operand2 in
-      let result = if comparison < 0 then 1 else 0 in
-      let i = Integer { value = result } in
-      stack := Stack.push i stack''
+        let comparison = compare_values operand1 operand2 in
+        let result = if comparison < 0 then 1 else 0 in
+        let i = Integer { value = result } in
+        stack := Stack.push i stack''
     | '>' ->
-      let comparison = compare_values operand1 operand2 in
-      let result = if comparison > 0 then 1 else 0 in
-      let i = Integer { value = result } in
-      stack := Stack.push i stack''
+        let comparison = compare_values operand1 operand2 in
+        let result = if comparison > 0 then 1 else 0 in
+        let i = Integer { value = result } in
+        stack := Stack.push i stack''
     (*do the rest*)
     | _ -> failwith "Invalid operator"
   (* Constructs one float digit when the operation_mode is less then -1 *)
