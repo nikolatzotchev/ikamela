@@ -23,7 +23,12 @@ module Stack = struct
   let print_stack stack = List.iter print_stack_element stack
 end
 
-let char_to_int char = Integer { value = int_of_char char - int_of_char '0' }
+(* Converts a char to a stack element with an integer value*)
+let char_to_stack_int char =
+  Integer { value = int_of_char char - int_of_char '0' }
+
+(* Converts a char into an integer*)
+let char_to_int char = int_of_char char - int_of_char '0'
 
 let rec evaluate_one_step mode expression_list stack_ =
   let stack = ref stack_ in
@@ -39,6 +44,14 @@ let rec evaluate_one_step mode expression_list stack_ =
             let sum = v.value + u.value in
             let i = Integer { value = sum } in
             stack := Stack.push i stack''
+        | Float v, Float u ->
+            let sum = v.value +. u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
+        | Integer v, Float u | Float u, Integer v ->
+            let sum = float_of_int v.value +. u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
         (*do the rest*)
         | _, _ -> failwith "not implemented")
     | '-' -> (
@@ -47,6 +60,14 @@ let rec evaluate_one_step mode expression_list stack_ =
             let sum = v.value - u.value in
             let i = Integer { value = sum } in
             stack := Stack.push i stack''
+        | Float v, Float u ->
+            let sum = v.value -. u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
+        | Integer v, Float u | Float u, Integer v ->
+            let sum = float_of_int v.value -. u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
         (*do the rest*)
         | _, _ -> failwith "not implemented")
     | '*' -> (
@@ -55,6 +76,14 @@ let rec evaluate_one_step mode expression_list stack_ =
             let mul = v.value * u.value in
             let i = Integer { value = mul } in
             stack := Stack.push i stack''
+        | Float v, Float u ->
+            let sum = v.value *. u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
+        | Integer v, Float u | Float u, Integer v ->
+            let sum = float_of_int v.value *. u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
         (*do the rest*)
         | _, _ -> failwith "not implemented * ")
     | '/' -> (
@@ -63,6 +92,38 @@ let rec evaluate_one_step mode expression_list stack_ =
             let sum = v.value / u.value in
             let i = Integer { value = sum } in
             stack := Stack.push i stack''
+        | Float v, Float u ->
+            let sum = v.value /. u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
+        | Integer v, Float u ->
+            let sum = float_of_int v.value /. u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
+        | Float v, Integer u ->
+            let sum = v.value /. float_of_int u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
+        (*do the rest*)
+        | _, _ -> failwith "not implemented")
+    | '%' -> (
+        match (operand1, operand2) with
+        | Integer v, Integer u ->
+            let sum = v.value mod u.value in
+            let i = Integer { value = sum } in
+            stack := Stack.push i stack''
+        | Float v, Float u ->
+            let sum = mod_float v.value u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
+        | Integer v, Float u ->
+            let sum = mod_float (float_of_int v.value) u.value in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
+        | Float v, Integer u ->
+            let sum = mod_float v.value (float_of_int u.value) in
+            let result = Float { value = sum } in
+            stack := Stack.push result stack''
         (*do the rest*)
         | _, _ -> failwith "not implemented")
     | '&' -> (
@@ -82,20 +143,33 @@ let rec evaluate_one_step mode expression_list stack_ =
             | _, _ -> stack := Stack.push (Integer { value = 1 }) stack'')
         (*do the rest*)
         | _, _ -> stack := Stack.push (String { value = "()" }) stack'')
-    (*do the rest % (modulo) *)
+    (*do the rest*)
     | _ -> failwith "Invalid operator"
+  (* Constructs one float digit when the operation_mode is less then -1 *)
+  and construct_float_number mode token =
+    let operand, stack' = Stack.pop !stack in
+    match operand with
+    | Float f ->
+        let new_value =
+          f.value
+          +. float_of_int (char_to_int token)
+             /. (10.0 ** float_of_int (-mode - 1))
+        in
+        let new_float = Float { value = new_value } in
+        stack := Stack.push new_float stack'
+    | _ -> failwith "Invalid operand for constructing float number"
   in
 
   let rec process_token operation_mode token rest =
     match operation_mode with
     | 0 -> (
         match token with
-        | '+' | '-' | '*' | '/' | '&' | '|' ->
+        | '+' | '-' | '*' | '/' | '&' | '|' | '%' ->
             apply_operator token;
             (0, rest)
         (*start integer creation*)
         | '0' .. '9' ->
-            stack := Stack.push (char_to_int token) !stack;
+            stack := Stack.push (char_to_stack_int token) !stack;
             (-1, rest)
         (*go to next number*)
         | ' ' -> (0, rest)
@@ -130,7 +204,6 @@ let rec evaluate_one_step mode expression_list stack_ =
             | _ -> (0, rest))
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
-    (* what is left to be done is switching ot float create mode*)
     | _ when operation_mode = -1 -> (
         match token with
         | '0' .. '9' -> (
@@ -139,16 +212,31 @@ let rec evaluate_one_step mode expression_list stack_ =
             | Integer number ->
                 stack :=
                   Stack.push
-                    (Integer
-                       {
-                         value =
-                           int_of_char token - int_of_char '0'
-                           + (number.value * 10);
-                       })
+                    (Integer { value = char_to_int token + (number.value * 10) })
                     stack';
                 (-1, rest)
             | Float _ -> failwith "not implemented -1 mode"
             | String _ -> failwith "not implemented -1 mode")
+        (* Convert the current stack entry to a float and push it back then switch to float construction mode *)
+        | '.' -> (
+            let stack_entry, stack' = Stack.pop !stack in
+            match stack_entry with
+            | Integer number ->
+                let float_value = float_of_int number.value in
+                stack := Stack.push (Float { value = float_value }) stack';
+                (-2, rest)
+            | _ -> failwith "Invalid token after dot")
+        | ' ' -> (0, rest)
+        | _ -> process_token 0 token rest)
+    (* Float construction mode *)
+    | _ when operation_mode < -1 -> (
+        match token with
+        | '0' .. '9' ->
+            construct_float_number operation_mode token;
+            (operation_mode - 1, rest)
+        | '.' ->
+            stack := Stack.push (Float { value = 0.0 }) !stack;
+            (-2, rest)
         | ' ' -> (0, rest)
         | _ -> process_token 0 token rest)
     (* string creation mode*)
