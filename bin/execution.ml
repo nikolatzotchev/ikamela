@@ -30,6 +30,24 @@ let char_to_stack_int char =
 (* Converts a char into an integer*)
 let char_to_int char = int_of_char char - int_of_char '0'
 
+let compare_float v u =
+  let epsilon = 0.0001 in
+  let diff = abs_float (v -. u) in
+  if abs_float v > 1.0 || abs_float u > 1.0 then
+    if diff <= epsilon *. max (abs_float v) (abs_float u) then 0 else 1
+  else if diff <= epsilon then 0
+  else 1
+
+let compare_values operand1 operand2 =
+  match (operand1, operand2) with
+  | Integer v1, Integer v2 -> compare v1.value v2.value
+  | Float v1, Float v2 -> compare_float v1.value v2.value
+  | Float v1, Integer v2 -> compare_float v1.value (float_of_int v2.value)
+  | Integer v1, Float v2 -> compare_float (float_of_int v1.value) v2.value
+  | String v1, String v2 -> compare v1.value v2.value
+  | String _, _ -> -1
+  | _, String _ -> 1
+
 let rec evaluate_one_step mode expression_list stack_ =
   let stack = ref stack_ in
   let tokens = expression_list in
@@ -143,6 +161,21 @@ let rec evaluate_one_step mode expression_list stack_ =
             | _, _ -> stack := Stack.push (Integer { value = 1 }) stack'')
         (*do the rest*)
         | _, _ -> stack := Stack.push (String { value = "()" }) stack'')
+    | '=' ->
+        let comparison = compare_values operand1 operand2 in
+        let result = if comparison = 0 then 1 else 0 in
+        let i = Integer { value = result } in
+        stack := Stack.push i stack''
+    | '<' ->
+        let comparison = compare_values operand1 operand2 in
+        let result = if comparison < 0 then 1 else 0 in
+        let i = Integer { value = result } in
+        stack := Stack.push i stack''
+    | '>' ->
+        let comparison = compare_values operand1 operand2 in
+        let result = if comparison > 0 then 1 else 0 in
+        let i = Integer { value = result } in
+        stack := Stack.push i stack''
     (*do the rest*)
     | _ -> failwith "Invalid operator"
   (* Constructs one float digit when the operation_mode is less then -1 *)
@@ -164,7 +197,7 @@ let rec evaluate_one_step mode expression_list stack_ =
     match operation_mode with
     | 0 -> (
         match token with
-        | '+' | '-' | '*' | '/' | '&' | '|' | '%' ->
+        | '+' | '-' | '*' | '/' | '&' | '|' | '%' | '=' | '<' | '>' ->
             apply_operator token;
             (0, rest)
         (*start integer creation*)
