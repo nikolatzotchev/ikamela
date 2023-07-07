@@ -191,6 +191,11 @@ let rec evaluate_one_step mode expression_list stack_ =
                   (0, List.of_seq (String.to_seq new_str) @ rest)
             (* else do nothing *)
             | _ -> (0, rest))
+        (* Push current size of stack as new element on the stack *)
+        | '#' ->
+            let stack_size = List.length !stack in
+            stack := Stack.push (Integer { value = stack_size }) !stack;
+            (0, rest)
         (* pop string -> put at the end with @*)
         | '\\' -> (
             let stack_entry, stack' = Stack.pop !stack in
