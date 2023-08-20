@@ -1,3 +1,5 @@
+open Registers
+
 type stack_element =
   | Integer of { value : int }
   | String of { value : string }
@@ -246,6 +248,12 @@ let rec evaluate_one_step mode expression_list stack_ =
                 (0, rest @ List.of_seq (String.to_seq str.value) @ [ '@' ])
             (* else do nothing *)
             | _ -> (0, rest))
+        | 'a' .. 'z' ->
+            (* Handling registers *)
+            (* Get register with token, convert to char list, append the `rest` *)
+            let expression = (RegistersMap.find (String.make 1 token) !global_registers_map) in
+            let expression = (List.of_seq (String.to_seq expression)) in
+            process_token 0 ' ' (expression @ rest)
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
     | _ when operation_mode = -1 -> (
