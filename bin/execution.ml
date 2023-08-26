@@ -19,6 +19,14 @@ module Stack = struct
     match stack with [] -> failwith "Stack is empty" | x :: xs -> (x, xs)
 
   let print_stack stack = List.iter print_stack_element stack
+
+  let rec get_nth n stack =
+    let index = (List.length stack) - (n+1)  in
+    match stack, (index) with
+    | [], _ -> raise (Failure "get_nth")
+    | _, n when n < 0 -> raise (Invalid_argument "get_nth")
+    | x::_, 0 -> x
+    | _::xs, n -> get_nth (n-1) xs
 end
 
 (* Converts a char to a stack element with an integer value*)
@@ -254,6 +262,15 @@ let rec evaluate_one_step mode expression_list stack_ =
             Registers.set_value (String.lowercase_ascii (String.make 1 token)) stack_entry;
             stack := stack';
             (0, rest) 
+        | '!' -> (
+            (*copy: replace top entry `n` with the nth entry of the stack*)
+            let stack_entry, stack' = Stack.pop !stack in
+              match stack_entry with
+                | Integer int ->
+                    (* +1 that stack begins counting at 0*)
+                    stack := Stack.push (Stack.get_nth (int.value+1) !stack) stack';
+                    (0, rest)
+                | _ -> (0, rest))
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
     | _ when operation_mode = -1 -> (
