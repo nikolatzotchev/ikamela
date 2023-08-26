@@ -278,6 +278,7 @@ let rec evaluate_one_step mode expression_list stack_ =
                     (0, rest)
                 | _ -> (0, rest))
         | '_' -> (
+            (*null check*)
             let stack_entry, stack' = Stack.pop !stack in
             let value = stack_entry in
             match value with
@@ -299,6 +300,14 @@ let rec evaluate_one_step mode expression_list stack_ =
                   stack := Stack.push (Integer { value = 0 }) stack';(0,rest);
                 );)
             )
+        | '~' -> (
+            (*negation*)
+            let stack_entry, stack' = Stack.pop !stack in
+              match stack_entry with
+                | Integer int -> stack:= Stack.push (Integer {value=(Int.neg int.value)}) stack'; (0,rest);
+                | Float f -> stack:= Stack.push (Float {value=(Float.neg f.value)}) stack'; (0,rest);
+                | _ -> stack := Stack.push (String { value = "()" }) stack'; (0, rest);
+              )
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
     | _ when operation_mode = -1 -> (
