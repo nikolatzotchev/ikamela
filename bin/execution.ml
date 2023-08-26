@@ -6,6 +6,12 @@ let print_stack_element = function
   | String s -> print_string s.value
   | Float f -> print_float f.value
 
+ let length_of_stack_element elem =
+  match elem with
+  | Integer _ -> 1  (* Integer takes up 1 element *)
+  | String str -> (String.length str.value) - 2 (*because of `(` and `)` *)
+  | Float _ -> 1  (* Float takes up 1 element *)
+
 (* Stack module, we need a custom one in order to implement also the other operations*)
 (* we do not have only pop and push*)
 module Stack = struct
@@ -271,6 +277,28 @@ let rec evaluate_one_step mode expression_list stack_ =
                     stack := Stack.push (Stack.get_nth (int.value+1) !stack) stack';
                     (0, rest)
                 | _ -> (0, rest))
+        | '_' -> (
+            let stack_entry, stack' = Stack.pop !stack in
+            let value = stack_entry in
+            match value with
+              | String _ -> (
+                let len = length_of_stack_element value in
+                match len with 
+                | 0 -> stack := Stack.push (Integer { value = 1 }) stack'; (0,rest);
+                | _ -> stack := Stack.push (Integer { value = 0 }) stack'; (0,rest);
+                )
+              | Integer int -> (
+                match int.value with
+                | 0 -> stack := Stack.push (Integer { value = 1 }) stack'; (0,rest);
+                | _ -> stack := Stack.push (Integer { value = 0 }) stack'; (0,rest);
+                )
+              | Float f -> (
+                if f.value > Float.neg (Float.epsilon) && f.value < Float.epsilon then (
+                  stack := Stack.push (Integer { value = 1 }) stack'; (1,rest);
+                ) else (
+                  stack := Stack.push (Integer { value = 0 }) stack';(0,rest);
+                );)
+            )
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
     | _ when operation_mode = -1 -> (
