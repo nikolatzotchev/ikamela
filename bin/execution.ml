@@ -1,9 +1,5 @@
 open Registers
 
-type stack_element =
-  | Integer of { value : int }
-  | String of { value : string }
-  | Float of { value : float }
 
 let print_stack_element = function
   | Integer p -> print_int p.value
@@ -248,12 +244,16 @@ let rec evaluate_one_step mode expression_list stack_ =
                 (0, rest @ List.of_seq (String.to_seq str.value) @ [ '@' ])
             (* else do nothing *)
             | _ -> (0, rest))
-        | 'a' .. 'z' ->
-            (* Handling registers *)
-            (* Get register with token, convert to char list, append the `rest` *)
-            let expression = (RegistersMap.find (String.make 1 token) !global_registers_map) in
-            let expression = (List.of_seq (String.to_seq expression)) in
-            process_token 0 ' ' (expression @ rest)
+        | 'a' .. 'z' -> (
+            (* Push register content to stack *)
+            let register_content = (RegistersMap.find (String.make 1 token) !global_registers_map) in
+            stack := Stack.push register_content !stack; (0, rest))
+        | 'A' .. 'Z' ->
+            (* Set value of register with top content of the stack *)
+            let stack_entry, stack' = Stack.pop !stack in
+            Registers.set_value (String.lowercase_ascii (String.make 1 token)) stack_entry;
+            stack := stack';
+            (0, rest) 
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
     | _ when operation_mode = -1 -> (
