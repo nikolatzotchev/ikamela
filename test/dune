@@ -1,2 +1,3 @@
 (test
- (name calc))
+ (name calc)
+ (libraries calc))
