@@ -1,16 +1,15 @@
 open Registers
 
-
 let print_stack_element = function
   | Integer p -> print_int p.value
   | String s -> print_string s.value
   | Float f -> print_float f.value
 
- let length_of_stack_element elem =
+let length_of_stack_element elem =
   match elem with
-  | Integer _ -> 1  (* Integer takes up 1 element *)
-  | String str -> (String.length str.value) - 2 (*because of `(` and `)` *)
-  | Float _ -> 1  (* Float takes up 1 element *)
+  | Integer _ -> 1 (* Integer takes up 1 element *)
+  | String str -> String.length str.value - 2 (*because of `(` and `)` *)
+  | Float _ -> 1 (* Float takes up 1 element *)
 
 (* Stack module, we need a custom one in order to implement also the other operations*)
 (* we do not have only pop and push*)
@@ -27,12 +26,12 @@ module Stack = struct
   let print_stack stack = List.iter print_stack_element stack
 
   let rec get_nth n stack =
-    let index = (List.length stack) - (n+1)  in
-    match stack, (index) with
+    let index = List.length stack - (n + 1) in
+    match (stack, index) with
     | [], _ -> raise (Failure "get_nth")
     | _, n when n < 0 -> raise (Invalid_argument "get_nth")
-    | x::_, 0 -> x
-    | _::xs, n -> get_nth (n-1) xs
+    | x :: _, 0 -> x
+    | _ :: xs, n -> get_nth (n - 1) xs
 end
 
 (* Converts a char to a stack element with an integer value*)
@@ -225,9 +224,16 @@ let rec evaluate_one_step mode expression_list stack_ =
         | '?' -> (
             let stack_entry, stack' = Stack.pop !stack in
             match stack_entry with
-            | Float v -> stack := Stack.push (Integer { value = int_of_float v.value }) stack'; (0, rest)
-            | String _ -> stack := Stack.push (String { value = "()" }) stack'; (0, rest)
-            | Integer _ -> stack := Stack.push (String { value = "()" }) stack'; (0, rest))
+            | Float v ->
+                stack :=
+                  Stack.push (Integer { value = int_of_float v.value }) stack';
+                (0, rest)
+            | String _ ->
+                stack := Stack.push (String { value = "()" }) stack';
+                (0, rest)
+            | Integer _ ->
+                stack := Stack.push (String { value = "()" }) stack';
+                (0, rest))
         (*This is the apply immediately which should take the string on the stack and evaluate it, if the top element is not a string do nothing*)
         | '@' -> (
             let stack_entry, stack' = Stack.pop !stack in
@@ -258,56 +264,75 @@ let rec evaluate_one_step mode expression_list stack_ =
                 (0, rest @ List.of_seq (String.to_seq str.value) @ [ '@' ])
             (* else do nothing *)
             | _ -> (0, rest))
-        | 'a' .. 'z' -> (
+        | 'a' .. 'z' ->
             (* Push register content to stack *)
-            let register_content = (RegistersMap.find (String.make 1 token) !global_registers_map) in
-            stack := Stack.push register_content !stack; (0, rest))
+            let register_content =
+              RegistersMap.find (String.make 1 token) !global_registers_map
+            in
+            stack := Stack.push register_content !stack;
+            (0, rest)
         | 'A' .. 'Z' ->
             (* Set value of register with top content of the stack *)
             let stack_entry, stack' = Stack.pop !stack in
-            Registers.set_value (String.lowercase_ascii (String.make 1 token)) stack_entry;
+            Registers.set_value
+              (String.lowercase_ascii (String.make 1 token))
+              stack_entry;
             stack := stack';
-            (0, rest) 
+            (0, rest)
         | '!' -> (
             (*copy: replace top entry `n` with the nth entry of the stack*)
             let stack_entry, stack' = Stack.pop !stack in
-              match stack_entry with
-                | Integer int ->
-                    (* +1 that stack begins counting at 0*)
-                    stack := Stack.push (Stack.get_nth (int.value+1) !stack) stack';
-                    (0, rest)
-                | _ -> (0, rest))
+            match stack_entry with
+            | Integer int ->
+                (* +1 that stack begins counting at 0*)
+                stack :=
+                  Stack.push (Stack.get_nth (int.value + 1) !stack) stack';
+                (0, rest)
+            | _ -> (0, rest))
         | '_' -> (
             (*null check*)
             let stack_entry, stack' = Stack.pop !stack in
             let value = stack_entry in
             match value with
-              | String _ -> (
+            | String _ -> (
                 let len = length_of_stack_element value in
-                match len with 
-                | 0 -> stack := Stack.push (Integer { value = 1 }) stack'; (0,rest);
-                | _ -> stack := Stack.push (Integer { value = 0 }) stack'; (0,rest);
-                )
-              | Integer int -> (
+                match len with
+                | 0 ->
+                    stack := Stack.push (Integer { value = 1 }) stack';
+                    (0, rest)
+                | _ ->
+                    stack := Stack.push (Integer { value = 0 }) stack';
+                    (0, rest))
+            | Integer int -> (
                 match int.value with
-                | 0 -> stack := Stack.push (Integer { value = 1 }) stack'; (0,rest);
-                | _ -> stack := Stack.push (Integer { value = 0 }) stack'; (0,rest);
-                )
-              | Float f -> (
-                if f.value > Float.neg (Float.epsilon) && f.value < Float.epsilon then (
-                  stack := Stack.push (Integer { value = 1 }) stack'; (1,rest);
-                ) else (
-                  stack := Stack.push (Integer { value = 0 }) stack';(0,rest);
-                );)
-            )
+                | 0 ->
+                    stack := Stack.push (Integer { value = 1 }) stack';
+                    (0, rest)
+                | _ ->
+                    stack := Stack.push (Integer { value = 0 }) stack';
+                    (0, rest))
+            | Float f ->
+                if f.value > Float.neg Float.epsilon && f.value < Float.epsilon
+                then (
+                  stack := Stack.push (Integer { value = 1 }) stack';
+                  (1, rest))
+                else (
+                  stack := Stack.push (Integer { value = 0 }) stack';
+                  (0, rest)))
         | '~' -> (
             (*negation*)
             let stack_entry, stack' = Stack.pop !stack in
-              match stack_entry with
-                | Integer int -> stack:= Stack.push (Integer {value=(Int.neg int.value)}) stack'; (0,rest);
-                | Float f -> stack:= Stack.push (Float {value=(Float.neg f.value)}) stack'; (0,rest);
-                | _ -> stack := Stack.push (String { value = "()" }) stack'; (0, rest);
-              )
+            match stack_entry with
+            | Integer int ->
+                stack :=
+                  Stack.push (Integer { value = Int.neg int.value }) stack';
+                (0, rest)
+            | Float f ->
+                stack := Stack.push (Float { value = Float.neg f.value }) stack';
+                (0, rest)
+            | _ ->
+                stack := Stack.push (String { value = "()" }) stack';
+                (0, rest))
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
     | _ when operation_mode = -1 -> (
