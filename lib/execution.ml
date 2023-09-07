@@ -25,6 +25,17 @@ module Stack = struct
 
   let print_stack stack = List.iter print_stack_element stack
 
+  let remove_nth n stack =
+    if n < 0 then
+      invalid_arg "remove_nth: negative index"
+    else
+      let rec aux n acc = function
+        | [] -> List.rev_append acc []
+        | _ :: tl when n = 0 -> List.rev_append acc tl
+        | hd :: tl -> aux (n - 1) (hd :: acc) tl
+      in
+      aux n [] stack
+
   let rec get_nth n stack =
     match (stack,n) with
     | [], _ -> raise (Failure "get_nth")
@@ -292,6 +303,17 @@ let rec evaluate_one_step mode expression_list stack_ =
                   with
                   | _ -> stack := stack'; (0,rest);
                   )
+            | _ -> (0, rest))
+        | '$' -> (
+            (*delete: pops top entry `n` and removes the nth entry of the stack*)
+            let stack_entry, stack' = Stack.pop !stack in
+            match stack_entry with
+            | Integer int ->
+                (* +1 that stack begins counting at 0*)
+                stack := stack';
+                stack :=
+                  Stack.remove_nth (int.value) !stack;
+                (0, rest)
             | _ -> (0, rest))
         | '_' -> (
             (*null check*)
