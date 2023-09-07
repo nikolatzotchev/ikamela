@@ -359,6 +359,25 @@ let rec evaluate_one_step mode expression_list stack_ =
             | _ ->
                 stack := Stack.push (String { value = "()" }) stack';
                 (0, rest))
+        | '"' -> (
+            (* output *)
+            let stack_entry, stack' = Stack.pop !stack in
+            match stack_entry with
+            | Integer int ->
+                print_int int.value;
+                print_endline " ";
+                stack := stack';
+                (0, rest)
+            | Float f ->
+                print_float f.value;
+                print_endline " ";
+                stack := stack';
+                (0, rest)
+            | String s ->
+                print_endline s.value;
+                stack := stack';
+                (0, rest)
+            )
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
     | _ when operation_mode = -1 -> (
