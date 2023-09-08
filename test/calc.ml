@@ -17,7 +17,22 @@ let math_operations =
                Integer { value = 0 };
                Integer { value = 9 };
              ]
-             (calc "9 0 0!") );
+             (calc "9 0 3!") );
+         ( "copy1" >:: fun _ ->
+           assert_equal
+             [
+               Integer { value = 1 };
+               String { value = "(A)" };
+               Integer { value = 1 };
+             ]
+             (calc "1(A)3!") );
+         ( "copy - no effect if wrong value n" >:: fun _ ->
+           assert_equal
+             [
+               String { value = "(A)" };
+               Integer { value = 1 };
+             ]
+             (calc "1(A)4!") );
          ( "null_check_empty_string" >:: fun _ ->
            assert_equal [ Integer { value = 1 } ] (calc "()_") );
          ( "null_check_string" >:: fun _ ->
