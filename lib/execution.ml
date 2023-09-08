@@ -26,7 +26,7 @@ module Stack = struct
   let print_stack stack = List.iter print_stack_element stack
 
   let rec get_nth n stack =
-    let index = List.length stack - (n + 1) in
+    let index = List.length stack - n in
     match (stack, index) with
     | [], _ -> raise (Failure "get_nth")
     | _, n when n < 0 -> raise (Invalid_argument "get_nth")
@@ -286,7 +286,7 @@ let rec evaluate_one_step mode expression_list stack_ =
             | Integer int ->
                 (* +1 that stack begins counting at 0*)
                 stack :=
-                  Stack.push (Stack.get_nth (int.value + 1) !stack) stack';
+                  Stack.push (Stack.get_nth (int.value) !stack) stack';
                 (0, rest)
             | _ -> (0, rest))
         | '_' -> (
