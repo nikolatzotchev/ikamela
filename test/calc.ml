@@ -13,7 +13,7 @@ let math_operations =
          ( "copy" >:: fun _ ->
            assert_equal
              [
-               Integer { value = 9 };
+               Integer { value = 9};
                Integer { value = 0 };
                Integer { value = 9 };
              ]
@@ -33,6 +33,15 @@ let math_operations =
                Integer { value = 1 };
              ]
              (calc "1(A)4!") );
+         ( "copy_bigger" >:: fun _ ->
+           assert_equal
+             [
+               Integer { value = 1 };
+               String { value = "(9~)" };
+               String { value = "(8)" };
+               Integer { value = 1 };
+             ]
+             (calc "1(8)(9~)4!") );
          ( "null_check_empty_string" >:: fun _ ->
            assert_equal [ Integer { value = 1 } ] (calc "()_") );
          ( "null_check_string" >:: fun _ ->
@@ -62,7 +71,15 @@ let registers_test =
              [ Calc.Registers.Integer { value = 2 } ]
              (calc "(1 1+)Aa@") );
        ]
-
+let example_from_pdf_test = 
+  "pdf_example"
+  >::: [
+  ( "exam1" >:: fun _ ->
+           assert_equal
+             [ Integer { value = 8 } ]
+             (calc "1(8)(9~)(4!4$_1+$@)@") );
+  ]
 let () =
   run_test_tt_main math_operations;
-  run_test_tt_main registers_test
+  run_test_tt_main registers_test;
+  run_test_tt_main example_from_pdf_test; 

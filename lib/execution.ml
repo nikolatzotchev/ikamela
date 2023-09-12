@@ -312,7 +312,7 @@ let rec evaluate_one_step mode expression_list stack_ =
                 (* +1 that stack begins counting at 0*)
                 stack := stack';
                 stack :=
-                  Stack.remove_nth (int.value) !stack;
+                  Stack.remove_nth (int.value-1) !stack;
                 (0, rest)
             | _ -> (0, rest))
         | '_' -> (
