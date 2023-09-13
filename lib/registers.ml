@@ -1,14 +1,10 @@
+open Calc_stack
 (*
 - 26 registers
 - named by lowercase letters (a to z)
 - predefined values when switching on the calculator (see main)
 - a -> contains the inital content of the command stream
 *)
-
-type stack_element =
-  | Integer of { value : int }
-  | String of { value : string }
-  | Float of { value : float }
 
 (*init global registers map*)
 module RegistersMap = Map.Make (String)

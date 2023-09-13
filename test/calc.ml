@@ -1,5 +1,5 @@
 open OUnit2
-open Calc.Registers
+open Calc.Calc_stack
 
 let calc expression = Calc.Execution.calculate expression
 
@@ -28,11 +28,17 @@ let math_operations =
              (calc "1(A)3!") );
          ( "copy - no effect if wrong value n" >:: fun _ ->
            assert_equal
+             [ String { value = "(A)" }; Integer { value = 1 } ]
+             (calc "1(A)4!") );
+         ( "copy_bigger" >:: fun _ ->
+           assert_equal
              [
-               String { value = "(A)" };
+               Integer { value = 1 };
+               String { value = "(9~)" };
+               String { value = "(8)" };
                Integer { value = 1 };
              ]
-             (calc "1(A)4!") );
+             (calc "1(8)(9~)4!") );
          ( "null_check_empty_string" >:: fun _ ->
            assert_equal [ Integer { value = 1 } ] (calc "()_") );
          ( "null_check_string" >:: fun _ ->
@@ -59,10 +65,23 @@ let registers_test =
   >::: [
          ( "reg1" >:: fun _ ->
            assert_equal
-             [ Calc.Registers.Integer { value = 2 } ]
+             [ Integer { value = 2 } ]
              (calc "(1 1+)Aa@") );
+       ]
+
+let example_from_pdf_test =
+  "pdf_example"
+  >::: [
+         ( "example1" >:: fun _ ->
+           assert_equal [ Integer { value = 8 } ] (calc "1(8)(9~)(4!4$_1+$@)@")
+         );
+         ( "example2" >:: fun _ ->
+           assert_equal
+             [ Integer { value = 6 } ]
+             (calc "3(3!3!1-2!1=()5!(4!4$_1+$@)@2$*)3!3$3!@2$") );
        ]
 
 let () =
   run_test_tt_main math_operations;
-  run_test_tt_main registers_test
+  run_test_tt_main registers_test;
+  run_test_tt_main example_from_pdf_test
