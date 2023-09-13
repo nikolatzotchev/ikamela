@@ -29,7 +29,7 @@ module CustomStack : CALC_STACK = struct
     | String s -> print_string s.value
     | Float f -> print_float f.value
 
-  let print_stack stack = List.iter print_stack_element stack
+  let print_stack stack = List.iter (fun elem -> print_stack_element elem; print_char ' ') stack
   let is_empty stack = match stack with [] -> true | _ -> false
   let push x stack = x :: stack
 
