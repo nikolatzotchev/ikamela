@@ -27,7 +27,12 @@ let () =
   set_value "n" (String { value = "(('+3!3$1-3!3$n@)(2$3!3$/)(5!_1+$@)@)" });
   (* this calculates the average (arithmetic mean) the main code is in register n *)
   set_value "q" (String { value = "(' 2! 0 n@)"});
-
+  (* ------------------ this is a try at the mean*)
+  (* set_value "l" (String { value = "((' 1$2!2$1-2!2$l@)()(5!_1+$@)@)"});  *)
+  (* set_value "l" (String { value = "((' 4!4$4!4$ 1-l@)(1$1+2/!)(4!_1+$@)@)"});  *)
+  (* set_value "c" (String { value = "(l@)"}); *)
+  (* set_value "m" (String { value = "(' 2! 2! 1+ 2 %_ (c@)(9~)(4!4$_1+$@)@)"});  *)
+  (**)
   (*print register output `a`, which contains initial program*)
   let output = get_register "a" in
   CustomStack.print_stack_element output;
