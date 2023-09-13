@@ -11,6 +11,22 @@ let length_of_stack_element elem =
   | String str -> String.length str.value - 2 (*because of `(` and `)` *)
   | Float _ -> 1 (* Float takes up 1 element *)
 
+
+let check_well_formed_string str = 
+    (* this stack is different then our operation *)
+    let local_stack = Stack.create( )in
+    let rec check_string_parentessens vec = 
+        match vec() with
+        | Seq.Nil -> if Stack.length local_stack == 0 then true else false;
+        | Seq.Cons(x, xs) -> 
+                match x with 
+                | '(' -> Stack.push 1 local_stack; check_string_parentessens xs
+                | ')' -> let _ = Stack.pop local_stack in check_string_parentessens xs
+                | _ -> check_string_parentessens xs
+    in 
+    check_string_parentessens (String.to_seq str)
+    
+
 (* Stack module, we need a custom one in order to implement also the other operations*)
 (* we do not have only pop and push*)
 module Stack = struct
@@ -23,11 +39,10 @@ module Stack = struct
   let pop stack =
     match stack with [] -> failwith "Stack is empty" | x :: xs -> (x, xs)
 
-  let print_stack stack = List.iter print_stack_element stack
+  let print_stack stack = List.iter (fun x ->  print_stack_element x; print_char ' ') stack
 
   let remove_nth n stack =
-    if n < 0 then
-      invalid_arg "remove_nth: negative index"
+    if n < 0 then invalid_arg "remove_nth: negative index"
     else
       let rec aux n acc = function
         | [] -> List.rev_append acc []
@@ -37,7 +52,7 @@ module Stack = struct
       aux n [] stack
 
   let rec get_nth n stack =
-    match (stack,n) with
+    match (stack, n) with
     | [], _ -> raise (Failure "get_nth")
     | _, n when n < 0 -> raise (Invalid_argument "get_nth")
     | x :: _, 0 -> x
@@ -124,7 +139,7 @@ let rec evaluate_one_step mode expression_list stack_ =
             let result = Float { value = sum } in
             stack := Stack.push result stack''
         (*do the rest*)
-        | _, _ -> failwith "not implemented * ")
+        | _, _ -> (* Stack.print_stack !stack; print_newline(); *)failwith "not implemented * ")
     | '/' -> (
         match (operand1, operand2) with
         | Integer v, Integer u ->
@@ -251,7 +266,8 @@ let rec evaluate_one_step mode expression_list stack_ =
             (* if string pop and apply *)
             | String str ->
                 let len = String.length str.value in
-                if len <= 2 then (0, rest)
+                (* if string is empty just remove it *)
+                if len <= 2 then (stack := stack'; (0, rest))
                 else
                   let new_str = String.sub str.value 1 (len - 2) in
                   stack := stack';
@@ -293,16 +309,15 @@ let rec evaluate_one_step mode expression_list stack_ =
             (*copy: replace top entry `n` with the nth entry of the stack*)
             let stack_entry, stack' = Stack.pop !stack in
             match stack_entry with
-            | Integer int ->
+            | Integer int -> (
                 (* +1 that stack begins counting at 0*)
-                (
-                  try
-                    stack :=
-                      Stack.push (Stack.get_nth (int.value - 1) !stack) stack';
-                      (0, rest)
-                  with
-                  | _ -> stack := stack'; (0,rest);
-                  )
+                try
+                  stack :=
+                    Stack.push (Stack.get_nth (int.value - 1) !stack) stack';
+                  (0, rest)
+                with _ ->
+                  stack := stack';
+                  (0, rest))
             | _ -> (0, rest))
         | '$' -> (
             (*delete: pops top entry `n` and removes the nth entry of the stack*)
@@ -311,8 +326,7 @@ let rec evaluate_one_step mode expression_list stack_ =
             | Integer int ->
                 (* +1 that stack begins counting at 0*)
                 stack := stack';
-                stack :=
-                  Stack.remove_nth (int.value-1) !stack;
+                stack := Stack.remove_nth (int.value - 1) !stack;
                 (0, rest)
             | _ -> (0, rest))
         | '_' -> (
@@ -359,13 +373,32 @@ let rec evaluate_one_step mode expression_list stack_ =
             | _ ->
                 stack := Stack.push (String { value = "()" }) stack';
                 (0, rest))
-        | '"' -> (
+        | '"' ->
             (* output *)
             let stack_entry, stack' = Stack.pop !stack in
-                print_stack_element stack_entry;
-                print_newline ();
-                stack := stack';
-                (0, rest))
+            print_stack_element stack_entry;
+            print_newline ();
+            stack := stack';
+            (0, rest)
+        | '\'' ->
+            (* output *)
+            let input_str = read_line () in
+            let input_int = int_of_string_opt input_str in
+            (match input_int with
+            | Some k -> stack := Stack.push (Integer { value = k }) !stack
+            | None -> (
+                let input_float = float_of_string_opt input_str in
+                match input_float with
+                | Some k -> stack := Stack.push (Float { value = k }) !stack
+                | None ->
+                    (* check if valid string *)
+                    if check_well_formed_string input_str then 
+                        stack := Stack.push (String { value = input_str }) !stack
+                    else 
+                        stack := Stack.push (String { value = "()"}) !stack
+            ));
+
+            (0, rest)
         | _ -> failwith "unsupported")
     (* here we have integer construction mode *)
     | _ when operation_mode = -1 -> (
