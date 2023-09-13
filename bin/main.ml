@@ -24,6 +24,9 @@ let () =
   set_value "i" (String { value = "(15 3*)" });
   set_value "j" (String { value = "(9 2+)" });
   set_value "k" (String { value = "(0 9 0 0 0 0 1!)" });
+  set_value "n" (String { value = "(('+3!3$1-3!3$n@)(2$3!3$/)(5!_1+$@)@)" });
+  (* this calculates the average (arithmetic mean) the main code is in register n *)
+  set_value "q" (String { value = "(' 2! 0 n@)"});
 
   (*print register output `a`, which contains initial program*)
   let output = get_register "a" in
