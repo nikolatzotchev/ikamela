@@ -35,11 +35,12 @@ let char_to_stack_int char =
 let char_to_int char = int_of_char char - int_of_char '0'
 
 let compare_float v u =
-  let epsilon = 0.0001 in
-  let diff = abs_float (v -. u) in
+  let epsilon = 0.1 in
+  let diff = v -. u in
+  let abs_diff = abs_float diff in
   if abs_float v > 1.0 || abs_float u > 1.0 then
-    if diff <= epsilon *. max (abs_float v) (abs_float u) then 0 else 1
-  else if diff <= epsilon then 0
+    if abs_diff >= epsilon *. max (abs_float v) (abs_float u) then if diff > 0.0 then 1 else 0 else 0
+  else if abs_diff <= epsilon then 0
   else 1
 
 let compare_values operand1 operand2 =
