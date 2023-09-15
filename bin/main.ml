@@ -12,28 +12,17 @@ let rec read_input () =
 
 let () =
   set_value "a" (String { value = "(Welcome! Let's calculate stuff! Woohoo!)" });
-  set_value "b" (Integer { value = 21 });
-  set_value "c" (Float { value = 3.14 });
-
-  (*registers, user register char  `c` like this to evaluate: `c@` *)
-  set_value "d" (String { value = "(15 2 3 4+*-)" });
-  set_value "e" (String { value = "(15 2+)" });
-  set_value "f" (String { value = "(15)" });
-  set_value "i" (String { value = "((#1+! #! > (#! #1-$) (#1+! #$) c@ 3! 1- 3$ i@ ) () (4!_1+$@)@)" });
-  (*set_value "i" (String { value = "((#! #1-! > (#! #$ ) (#1-! #1-$)  c@ 3!3$ 1-i@) () (4!_1+$@)@)" });*)
-  set_value "k" (String { value = "((#! #1-! > (#1-! #1-$ ) (#! #$)  c@ 3!3$ 1-i@) () (4!_1+$@)@)" });
-  set_value "g" (String { value = "((#1-i@#$1$1-g@)(1$y@)(4!_1+$@)@)" });
+  (* calculate median *)
+  set_value "i" (String { value = "((#1+! #! > (#! #1-$) (#1+! #$) c@ 4! 4$ 4! 1- 4$  i@) () (4!_1+$@)@)" });
+  set_value "g" (String { value = "((1-#2-i@#$1$g@)(1$y@)(4!_1+$@)@)" });
   set_value "h" (String { value = "(2! 2% (2/g@)() c@ )" });
-  (*set_value "h" (String { value = "(2! 2% (2/g@)() c@ )" });*)
-
-  (*set_value "j" (String { value = "(100.1 10.2 1000.3 10000.4 100000.5 # h@)" });*)
-  (*set_value "j" (String { value = "(1.1 1.3 1.2 1.1 1.5 # h@)" });*)
-  set_value "j" (String { value = "(1.1 1.3 1.2 1.1 1.4 # h@)" });
- (* set_value "j" (String { value = "(10.1 30.1 20.1 10.1 50.1 # h@)" });*)
-  (*set_value "j" (String { value = "(5 1 2 3 4 # h@)" });*)
+  set_value "j" (String { value = "('@ # h@)" });
+  
+  (* help function for the average*)
   set_value "n" (String { value = "(('+3!3$1-3!3$n@)(2$3!3$/)(5!_1+$@)@)" });
   (* this calculates the average (arithmetic mean) the main code is in register n *)
   set_value "q" (String { value = "(' 2! 0 n@)"});
+  
   set_value "x" (String { value = "(9 7 8 #! (#-1)@! > (0) (1) (4!4$_1+$@)@)"});
   set_value "n" (String { value = "(no)" });
   set_value "b" (String { value = "(3! 3! >)" }); (*is the first bigger than the second*)
