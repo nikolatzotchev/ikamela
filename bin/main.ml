@@ -18,7 +18,6 @@ let () =
   set_value "i" (String { value = "((#1+! #! > (#! #1-$) (#1+! #$) c@ 4! 4$ 4! 1- 4$  i@) () (4!_1+$@)@)" });
   set_value "g" (String { value = "((1-#2-i@#$1$g@)()(4!_1+$@)@)" });
   set_value "h" (String { value = "(2! 2% (2/g@1$y@)(2/1-g@1$#m@1$+2/y@) c@ )" });
-  (* set_value "h" (String { value = "(2! 2% (2/g@1$y@)(2/1-g@1$#2-t@) c@ )" }); *)
   (* this is the mean if you want to test use j@ in the 'console' and then input the array like this (1.5 1.8 1.0 1.2 2.5) *)
   set_value "j" (String { value = "('@ # h@)" });
   
@@ -27,8 +26,12 @@ let () =
   (* this calculates the average (arithmetic mean) the main code is in register n *)
   set_value "q" (String { value = "(' 2! 0 n@)"});
 
-  (* find the median*)
-  set_value "w" (String { value = "('@)"}); 
+  (* find the variance*)
+  set_value "e" (String { value = "((1-e@#$)(1$)(4!_1+$@)@)"}); 
+  set_value "o" (String { value = "((#3!-2+!5!-2!*4!4$+3!3$1-o@)(1$2$#2-/#1-e@)(4!_1+$@)@)"}); 
+  set_value "p" (String { value = "((#3!-2+!4!4$+3!3$1-p@)(1$#1-/0#2-o@)(4!_1+$@)@)"}); 
+  set_value "w" (String { value = "('@ 0 #1- p@)"}); 
+
   set_value "x" (String { value = "(9 7 8 #! (#-1)@! > (0) (1) (4!4$_1+$@)@)"});
   set_value "c" (String { value = "(4!4$_1+$@)"});
 
@@ -36,11 +39,7 @@ let () =
   set_value "x" (String { value = "((3! 3! >)@ () (3! 3$) c@)"}); (*order 2 values*)
   set_value "x" (String { value = "((3! 3! >)@ () (3! 3$) c@)"}); (*order 2 values*)
   set_value "y" (String { value = "(# 1 > (z@ y@) () c@)"}); (*get max value of list*)
-  (* ------------------ this is a try at the mean*)
-  (* set_value "l" (String { value = "((' 1$2!2$1-2!2$l@)()(5!_1+$@)@)"});  *)
-  (* set_value "l" (String { value = "((' 4!4$4!4$ 1-l@)(1$1+2/!)(4!_1+$@)@)"});  *)
-  (* set_value "c" (String { value = "(l@)"}); *)
-  (* set_value "m" (String { value = "(' 2! 2! 1+ 2 %_ (c@)(9~)(4!4$_1+$@)@)"});  *)
+
   (*print register output `a`, which contains initial program*)
   let output = get_register "a" in
   CustomStack.print_stack_element output;
