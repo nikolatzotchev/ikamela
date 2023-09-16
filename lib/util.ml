@@ -35,19 +35,19 @@ let char_to_stack_int char =
 let char_to_int char = int_of_char char - int_of_char '0'
 
 let compare_float v u =
-  let epsilon = 0.0001 in
+  let epsilon = 0.00000000000001 in
   let diff = v -. u in
   let abs_diff = abs_float diff in
   if abs_float v > 1.0 || abs_float u > 1.0 then
     if abs_diff >= epsilon *. max (abs_float v) (abs_float u) then if diff > 0.0 then 1 else -1 else 0
-  else if abs_diff <= epsilon then 0
-  else 1
+  else if abs_diff <= epsilon then 0 else 1
 
 let compare_values operand1 operand2 =
   match (operand1, operand2) with
   | Integer v1, Integer v2 -> compare v1.value v2.value
   | Float v1, Float v2 -> compare_float v1.value v2.value
-  | Float v1, Integer v2 -> compare_float v1.value (float_of_int v2.value)
+  (*| Float v1, Integer v2 -> compare_float v1.value (float_of_int v2.value)*)
+  | Float v1, Integer v2 -> (Printf.printf "%d %f\n" v2.value v1.value); 1
   | Integer v1, Float v2 -> compare_float (float_of_int v1.value) v2.value
   | String v1, String v2 -> compare v1.value v2.value
   | String _, _ -> -1

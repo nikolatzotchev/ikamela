@@ -11,28 +11,38 @@ let rec read_input () =
   read_input ()
 
 let () =
-  set_value "a" (String { value = "Welcome! Let's calculate stuff! Woohoo!" });
-  set_value "b" (Integer { value = 21 });
-  set_value "c" (Float { value = 3.14 });
-
-  (*registers, user register char  `c` like this to evaluate: `c@` *)
-  set_value "d" (String { value = "(15 2 3 4+*-)" });
-  set_value "e" (String { value = "(15 2+)" });
-  set_value "f" (String { value = "(15)" });
-  set_value "g" (String { value = "(15 1*)" });
-  set_value "h" (String { value = "(15 2*)" });
-  set_value "i" (String { value = "(15 3*)" });
-  set_value "j" (String { value = "(9 2+)" });
-  set_value "k" (String { value = "(0 9 0 0 0 0 1!)" });
-  set_value "n" (String { value = "(('+3!3$1-3!3$n@)(2$3!3$/)(5!_1+$@)@)" });
+  set_value "a" (String { value = "(Welcome! Let's calculate stuff! Woohoo!)" });
+  (* calculate median *)
+  set_value "m" (String { value = "((#1+! #! > (#1+! #$) (#! #1-$) c@ 4! 4$ 4! 1- 4$  m@) () (4!_1+$@)@)" });
+  set_value "t" (String { value = "((1-#2-m@#$1$t@)()(4!_1+$@)@)" });
+  set_value "i" (String { value = "((#1+! #! > (#! #1-$) (#1+! #$) c@ 4! 4$ 4! 1- 4$  i@) () (4!_1+$@)@)" });
+  set_value "g" (String { value = "((1-#2-i@#$1$g@)()(4!_1+$@)@)" });
+  set_value "h" (String { value = "(2! 2% (2/g@1$y@)(2/1-g@1$#m@1$+2/y@) c@ )" });
+  (* this is the median if you want to test use j@ in the 'console' and then input the array like this (1.5 1.8 1.0 1.2 2.5) *)
+  set_value "j" (String { value = "('@ # h@)" });
+  
+  (* help function for the average*)
   (* this calculates the average (arithmetic mean) the main code is in register n *)
-  set_value "q" (String { value = "(' 2! 0 n@)"});
-  (* ------------------ this is a try at the mean*)
-  (* set_value "l" (String { value = "((' 1$2!2$1-2!2$l@)()(5!_1+$@)@)"});  *)
-  (* set_value "l" (String { value = "((' 4!4$4!4$ 1-l@)(1$1+2/!)(4!_1+$@)@)"});  *)
-  (* set_value "c" (String { value = "(l@)"}); *)
-  (* set_value "m" (String { value = "(' 2! 2! 1+ 2 %_ (c@)(9~)(4!4$_1+$@)@)"});  *)
-  (**)
+  set_value "v" (String { value = "(# 1 > (#$v@) () c@)"}); 
+  set_value "n" (String { value = "((#3!-2+!4!4$+3!3$1-n@)(1$#1-/v@)(4!_1+$@)@)"}); 
+  (* this is the mean *)
+  set_value "q" (String { value = "('@ 0 #1- n@)"});
+
+  (* find the variance*)
+  set_value "e" (String { value = "((1-e@#$)(1$)(4!_1+$@)@)"}); 
+  set_value "o" (String { value = "((#3!-2+!5!-2!*4!4$+3!3$1-o@)(1$2$#2-/#1-e@)(4!_1+$@)@)"}); 
+  set_value "p" (String { value = "((#3!-2+!4!4$+3!3$1-p@)(1$#1-/0#2-o@)(4!_1+$@)@)"}); 
+  (* this is the register for variance*)
+  set_value "w" (String { value = "('@ 0 #1- p@)"}); 
+
+  set_value "x" (String { value = "(9 7 8 #! (#-1)@! > (0) (1) (4!4$_1+$@)@)"});
+  set_value "c" (String { value = "(4!4$_1+$@)"});
+
+  set_value "z" (String { value = "((3! 3! >)@ (1$) (2$) c@)"}); (*compare  2 value and remove lower one*)
+  set_value "x" (String { value = "((3! 3! >)@ () (3! 3$) c@)"}); (*order 2 values*)
+  set_value "x" (String { value = "((3! 3! >)@ () (3! 3$) c@)"}); (*order 2 values*)
+  set_value "y" (String { value = "(# 1 > (z@ y@) () c@)"}); (*get max value of list*)
+
   (*print register output `a`, which contains initial program*)
   let output = get_register "a" in
   CustomStack.print_stack_element output;
